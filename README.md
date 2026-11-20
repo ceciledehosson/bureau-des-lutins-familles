@@ -70,3 +70,25 @@ Ordre : exécuter la migration dans Supabase → SQL Editor, vérifier l'absence
 Une notice informative est visible dans l'application. Elle ne remplace pas une politique RGPD complète (responsable de traitement, contact, durée de conservation, sous-traitants, droits des personnes, éventuelle gestion des mineurs), à préparer avant une vraie diffusion ouverte.
 
 Les appels RPC publics `board`, `create_family` et `join_family` restent directement utilisables en dehors de Streamlit. Les limites globales sur `create_family` réduisent les créations mais ne fournissent **aucune limitation par personne ni véritable protection des tentatives d'accès**. Le masquage d'un bouton, une vérification JavaScript ou un compteur Streamlit ne sauraient résoudre ce point. Pour une diffusion large, il faudra mettre ces accès derrière une protection vérifiée côté serveur (anti-bot et limitation des requêtes) ; ne pas affirmer que l'application est sécurisée avant ces tests.
+
+
+## Activation anti-abus V4 : ordre obligatoire (ne pas inverser)
+
+La V4 est conçue pour conserver les bureaux, codes et souhaits existants. **Ne pas appliquer le SQL tant que le serveur Streamlit n'a pas ses nouveaux secrets.**
+
+1. Dans **Supabase du projet multi-familles**, retrouver la clé **service_role** (ou clé serveur secrète compatible avec le client Supabase). Elle est très privilégiée : elle doit rester exclusivement dans les secrets du déploiement Streamlit, **jamais dans GitHub, le navigateur, un message ou une capture**. Utiliser uniquement la clé du projet multi-familles, pas celle du Bureau familial.
+2. Dans **Streamlit Community Cloud → app familles → Settings → Secrets**, conserver les deux anciens secrets et ajouter :
+   ```toml
+   SUPABASE_SERVICE_ROLE_KEY = "CLE_SERVEUR_SUPABASE"
+   RATE_LIMIT_PEPPER = "UNE_LONGUE_CHAINE_ALEATOIRE_UNIQUE"
+   ```
+   Générer la seconde localement avec `python -c "import secrets; print(secrets.token_hex(32))"`. Ne partager ni l'une ni l'autre.
+3. Enregistrer et redémarrer l'app. **Avant le SQL, les opérations publiques continuent de fonctionner** (anciens droits anon toujours actifs). Une fois la clé serveur en place, Streamlit effectue les appels avec cette clé.
+4. Exécuter `migration_antiabus_v4.sql` dans **Supabase SQL Editor** (projet multi-familles). Cette migration crée la table de quotas et **révoque l'exécution anonyme des RPC**. Si on la lance trop tôt, l'application sera indisponible jusqu'à correction des secrets.
+5. Vérifier le tableau final : `anon_can_execute=false` et `service_can_execute=true`. Redémarrer Streamlit, puis vérifier connexion, création et invitation sur un Bureau fictif. Si la mise en place échoue, ne pas publier l'app ; revoir la clé et les droits.
+
+La V4 limite, par adresse réseau détectée par Streamlit (ou par quota partagé lorsqu'elle est indisponible) : **15 connexions / 15 min, 4 créations / heure, 12 inscriptions / heure**. Les compteurs sont stockés côté serveur, dans Supabase. L'identifiant réseau y est conservé sous forme HMAC avec une clé de hachage privée ; l'adresse IP brute n'est pas stockée par cette fonctionnalité.
+
+**Limites :** une adresse IP peut être mutualisée (plusieurs proches bloqués ensemble) ; des bots distribués peuvent changer d'IP ; les compteurs expirés requièrent un entretien périodique ; cette V4 n'est pas un service anti-DDoS ni une certification de sécurité. La création globale reste plafonnée par la V1.
+
+Surtout, ne jamais fournir `SUPABASE_SERVICE_ROLE_KEY` à un code côté navigateur ni remettre les droits anon sur les fonctions du Bureau après activation.
