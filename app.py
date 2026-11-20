@@ -57,10 +57,13 @@ def operation(name, **params):
         refresh()
         st.rerun()
     except Exception as err:
-        st.error(f"Le serveur des lutins proteste : {err}")
+        st.error("Le serveur des lutins n'a pas pu effectuer cette opération. Vérifie les champs ou réessaie.")
 
 def enter(code):
     code = code.strip()
+    if len(code) > 128:
+        st.error("Code trop long.")
+        return
     if not code:
         st.error("Le code ne peut pas être vide.")
         return
@@ -73,7 +76,7 @@ def enter(code):
             st.session_state.board = board
             st.rerun()
     except Exception as err:
-        st.error(f"Impossible de joindre l'atelier : {err}")
+        st.error("Impossible de joindre l'atelier pour le moment. Réessaie dans un instant.")
 
 st.title("🎄 Le Bureau des Lutins")
 st.caption("Les cadeaux s'organisent. Les surprises restent ! 🤫")
@@ -95,11 +98,14 @@ if "code" not in st.session_state:
             name = st.text_input("Ton prénom (créateur ou créatrice du Bureau)", placeholder="Ex. : Cécile", max_chars=60)
             create = st.form_submit_button("Créer notre Bureau 🎅")
         if create:
+            if not title.strip() or not name.strip():
+                st.warning("Indique le nom du Bureau et ton prénom.")
+                st.stop()
             try:
                 result = rpc("create_family", p_title=title.strip(), p_name=name.strip())
                 st.session_state.new_codes = result
             except Exception as err:
-                st.error(f"Impossible de créer le Bureau : {err}")
+                st.error("Impossible de créer ce Bureau. Vérifie le nom et le prénom ou réessaie.")
         if "new_codes" in st.session_state:
             st.success("Ton Bureau est créé ! Copie ces deux codes maintenant.")
             st.code(st.session_state.new_codes["code"], language=None)
@@ -116,10 +122,13 @@ if "code" not in st.session_state:
             nickname = st.text_input("Ton prénom (pour que les autres lutins te reconnaissent)", placeholder="Ex. : Emmanuelle", max_chars=60)
             do_join = st.form_submit_button("Rejoindre ma famille")
         if do_join:
+            if not invitation.strip() or not nickname.strip():
+                st.warning("Indique le code d'invitation et ton prénom.")
+                st.stop()
             try:
                 st.session_state.joined_code = rpc("join_family", p_invitation=invitation.strip(), p_name=nickname.strip())["code"]
             except Exception as err:
-                st.error(f"Impossible de rejoindre le Bureau : {err}")
+                st.error("Invitation non reconnue, prénom déjà utilisé ou Bureau complet. Vérifie les informations.")
         if "joined_code" in st.session_state:
             st.success("Bienvenue parmi les lutins ! Conserve ton code personnel.")
             st.code(st.session_state.joined_code, language=None)
