@@ -4,22 +4,41 @@ from supabase import create_client
 
 st.set_page_config(page_title="Le Bureau des Lutins", page_icon="🎄", layout="centered")
 st.markdown("""<style>
-.stApp {background:#fffaf3;color:#25382e}
-h1,h2,h3 {color:#245340!important}
-[data-testid="stSidebar"] {background:#455750}
-[data-testid="stSidebar"] * {color:white!important}
-/* Onglets contrastés : les libellés restent visibles, même hors sélection. */
-.stTabs [data-baseweb="tab-list"] {background:#455750!important;padding:4px;border-radius:9px;gap:2px}
-.stTabs button[data-baseweb="tab"] {background:#455750!important;color:#fff!important;border-radius:7px}
-.stTabs button[data-baseweb="tab"] * {color:#fff!important;opacity:1!important}
-.stTabs button[data-baseweb="tab"][aria-selected="true"] {background:#a92335!important;color:#fff!important}
-.stTabs button[data-baseweb="tab"][aria-selected="true"] * {color:#fff!important}
-.stTabs [data-baseweb="tab-highlight"] {background:#fff!important}
-.stButton button[kind="primary"] {background:#a92335;border-color:#a92335;color:white}
-.stButton button[kind="secondary"] {background:#52675c;border-color:#52675c;color:white}
-.stButton button[kind="secondary"] * {color:white!important}
-[data-testid="stExpander"] summary {background:#52675c;color:white!important}
-[data-testid="stExpander"] summary * {color:white!important}
+/* Palette claire homogène : le thème Streamlit fournit les couleurs de texte. */
+.stApp {background-color:#fffaf3}
+h1, h2, h3 {color:#245340!important}
+[data-testid="stSidebar"] {background-color:#e8eee7}
+[data-testid="stSidebar"] h1,
+[data-testid="stSidebar"] h2,
+[data-testid="stSidebar"] h3 {color:#245340!important}
+
+/* Onglets : blanc/gris clair + typographie foncée lisible. */
+.stTabs [data-baseweb="tab-list"] {background:#e6ebe5!important;border-radius:9px;padding:5px;gap:4px}
+.stTabs button[data-baseweb="tab"] {background:#eef2ed!important;border-radius:7px;color:#213b30!important}
+.stTabs button[data-baseweb="tab"] p,
+.stTabs button[data-baseweb="tab"] span {color:#213b30!important;opacity:1!important}
+.stTabs button[data-baseweb="tab"][aria-selected="true"] {background:#245340!important}
+.stTabs button[data-baseweb="tab"][aria-selected="true"] p,
+.stTabs button[data-baseweb="tab"][aria-selected="true"] span {color:#fff!important}
+.stTabs [data-baseweb="tab-highlight"] {background:#a92335!important}
+
+/* Formulaires : noms de champs visibles et saisie toujours lisible. */
+[data-testid="stWidgetLabel"] p {color:#213b30!important;opacity:1!important}
+[data-testid="stForm"] {border:1px solid #87978c!important}
+[data-baseweb="input"] input,
+[data-baseweb="textarea"] textarea {background-color:#fff!important;color:#203a30!important}
+[data-baseweb="input"] input::placeholder,
+[data-baseweb="textarea"] textarea::placeholder {color:#5c6d63!important;opacity:1!important}
+[data-baseweb="select"] > div {background:#fff!important;color:#203a30!important}
+[data-baseweb="select"] > div * {color:#203a30!important}
+.stButton button[kind="primary"],
+[data-testid="stFormSubmitButton"] button[kind="primary"] {background:#a92335!important;border-color:#a92335!important;color:#fff!important}
+.stButton button[kind="primary"] *,
+[data-testid="stFormSubmitButton"] button[kind="primary"] * {color:#fff!important}
+.stButton button[kind="secondary"] {background:#52675c!important;color:#fff!important;border-color:#52675c!important}
+.stButton button[kind="secondary"] * {color:#fff!important}
+[data-testid="stExpander"] summary {background:#e6ebe5!important;color:#203a30!important}
+[data-testid="stExpander"] summary * {color:#203a30!important}
 </style>""", unsafe_allow_html=True)
 
 @st.cache_resource
@@ -70,8 +89,8 @@ if "code" not in st.session_state:
     with new_family:
         st.write("Un espace privé pour votre famille, gratuit et réservé à Noël.")
         with st.form("new_family"):
-            title = st.text_input("Nom du Bureau", placeholder="Les lutins de la famille Martin", max_chars=80)
-            name = st.text_input("Ton prénom", max_chars=60)
+            title = st.text_input("Nom du Bureau familial", placeholder="Les lutins de la famille Martin", max_chars=80)
+            name = st.text_input("Ton prénom (créateur ou créatrice du Bureau)", placeholder="Ex. : Cécile", max_chars=60)
             create = st.form_submit_button("Créer notre Bureau 🎅")
         if create:
             try:
@@ -92,7 +111,7 @@ if "code" not in st.session_state:
     with join:
         with st.form("join_family"):
             invitation = st.text_input("Code d'invitation reçu", type="password")
-            nickname = st.text_input("Ton prénom", max_chars=60)
+            nickname = st.text_input("Ton prénom (pour que les autres lutins te reconnaissent)", placeholder="Ex. : Emmanuelle", max_chars=60)
             do_join = st.form_submit_button("Rejoindre ma famille")
         if do_join:
             try:
