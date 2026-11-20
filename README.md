@@ -33,3 +33,15 @@ Le code est publié pour développement et expérimentation, sans garantie de s�
 © 2026 Cécile de Hosson — Tous droits réservés.
 
 Le dépôt est public pour consultation et tests, mais aucune licence de réutilisation, modification ou redistribution n’est accordée pour le moment. Une éventuelle licence libre pourra être définie ultérieurement par la titulaire des droits.
+
+## Audit de sécurité (20 novembre 2026)
+
+Revue statique initiale de `app.py` et `schema.sql` : contrôle des droits d'écriture et séparation par famille prévus dans les fonctions RPC ; masquage des réservations du destinataire dans `board`. Les codes sont générés aléatoirement puis stockés hachés.
+
+Corrections réalisées dans `app.py` : messages d'erreur de connexion et d'opérations rendus génériques pour ne pas exposer de détails internes, et validation minimale des formulaires d'accès.
+
+**Vérifications restantes :** exécuter `audit_securite.sql` dans le **nouveau** projet Supabase, vérifier les droits effectifs, puis réaliser des tests négatifs d'appels RPC directs avec les identifiants de deux familles distinctes. Les essais par interface ne constituent pas un audit de pénétration.
+
+**Risques non levés :** les fonctions `create_family`, `join_family` et `board` sont accessibles depuis Internet avec la clé publique ; aucun dispositif fiable de limitation de débit / anti-bot ne protège ces appels. Ne pas annoncer l'application comme sécurisée pour une diffusion générale. Une protection côté serveur (vérification anti-bot et quotas) est nécessaire avant ouverture publique.
+
+Les données de test sont conservées ; aucune migration destructive n'a été appliquée.
