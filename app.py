@@ -2,6 +2,7 @@
 import hashlib
 import hmac
 import secrets
+import requests
 import streamlit as st
 from supabase import create_client
 
@@ -83,6 +84,92 @@ def rate_limit(action):
         st.error("Le contrôle de sécurité est indisponible. Réessaie plus tard.")
         return False
 
+# Activation volontaire après contrôle du widget (Settings > Secrets).
+TURNSTILE_ENFORCE = bool(st.secrets.get("TURNSTILE_ENFORCE", False))
+
+TURNSTILE_JS = r"""
+export default function(component) {
+  const {parentElement, data, setStateValue} = component;
+  let box = parentElement.querySelector(".lutins-turnstile");
+  if (!box) {
+    box = document.createElement("div");
+    box.className = "lutins-turnstile";
+    parentElement.appendChild(box);
+  }
+  // Un script partagé entre les trois onglets, sans exposer la secret key.
+  if (!window.__lutinsTurnstileLoader) {
+    window.__lutinsTurnstileLoader = new Promise((resolve, reject) => {
+      if (window.turnstile) { resolve(window.turnstile); return; }
+      const script = document.createElement("script");
+      script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
+      script.async = true;
+      script.onload = () => resolve(window.turnstile);
+      script.onerror = () => reject(new Error("Turnstile unavailable"));
+      document.head.appendChild(script);
+    });
+  }
+  let alive = true;
+  window.__lutinsTurnstileLoader.then((turnstile) => {
+    if (!alive || !box.isConnected) return;
+    if (box.dataset.widgetId) return;
+    const id = turnstile.render(box, {
+      sitekey: data.sitekey,
+      theme: "light",
+      callback: (token) => setStateValue("token", token),
+      "expired-callback": () => setStateValue("token", ""),
+      "error-callback": () => setStateValue("token", "")
+    });
+    box.dataset.widgetId = String(id);
+  }).catch(() => {
+    if (alive) box.textContent = "Vérification indisponible : recharge la page.";
+  });
+  return () => { alive = false; };
+}
+"""
+
+@st.cache_resource
+def turnstile_component():
+    return st.components.v2.component(
+        "lutins_turnstile", js=TURNSTILE_JS, isolate_styles=False
+    )
+
+def turnstile_token(where):
+    if not TURNSTILE_ENFORCE:
+        return None
+    site_key = st.secrets.get("TURNSTILE_SITE_KEY")
+    secret_key = st.secrets.get("TURNSTILE_SECRET_KEY")
+    if not site_key or not secret_key:
+        st.error("La vérification de sécurité est mal configurée.")
+        st.stop()
+    result = turnstile_component()(
+        data={"sitekey": str(site_key)}, key="turnstile_" + where,
+        default={"token": ""},
+        on_token_change=lambda: None,
+    )
+    return result.token
+
+def verify_turnstile(token):
+    if not TURNSTILE_ENFORCE:
+        return True
+    if not token or len(token) > 2048:
+        st.warning("Termine la vérification de sécurité avant de continuer.")
+        return False
+    try:
+        response = requests.post(
+            "https://challenges.cloudflare.com/turnstile/v0/siteverify",
+            data={"secret": st.secrets["TURNSTILE_SECRET_KEY"],
+                  "response": token},
+            timeout=8,
+        )
+        response.raise_for_status()
+        result = response.json()
+        if result.get("success") is True and result.get("hostname") == "bureau-des-lutins-familles.streamlit.app":
+            return True
+    except (requests.RequestException, ValueError):
+        pass
+    st.warning("Vérification expirée ou refusée. Actualise la page et réessaie.")
+    return False
+
 def refresh():
     st.session_state.board = rpc("board", p_code=st.session_state.code)
 
@@ -145,13 +232,15 @@ with st.expander("🔐 Confidentialité et données personnelles"):
 if "code" not in st.session_state:
     access, new_family, join = st.tabs(["🧝 Entrer", "🎄 Créer un Bureau", "✉️ Rejoindre"])
     with access:
+        login_token = turnstile_token("login")
         with st.form("login"):
             code = st.text_input("Mon code secret", type="password")
             submit = st.form_submit_button("Ouvrir ma hotte", type="primary")
-        if submit:
+        if submit and verify_turnstile(login_token):
             enter(code)
     with new_family:
         st.write("Un espace privé pour votre famille, gratuit et réservé à Noël.")
+        create_token = turnstile_token("create")
         with st.form("new_family"):
             title = st.text_input("Nom du Bureau familial", placeholder="Les lutins de la famille Martin", max_chars=80)
             name = st.text_input("Ton prénom (créateur ou créatrice du Bureau)", placeholder="Ex. : Cécile", max_chars=60)
@@ -160,7 +249,7 @@ if "code" not in st.session_state:
             if not title.strip() or not name.strip():
                 st.warning("Indique le nom du Bureau et ton prénom.")
                 st.stop()
-            if not rate_limit("create"):
+            if not verify_turnstile(create_token) or not rate_limit("create"):
                 st.stop()
             try:
                 result = rpc("create_family", p_title=title.strip(), p_name=name.strip())
@@ -178,6 +267,7 @@ if "code" not in st.session_state:
                 del st.session_state.new_codes
                 enter(code)
     with join:
+        join_token = turnstile_token("join")
         with st.form("join_family"):
             invitation = st.text_input("Code d'invitation reçu", type="password")
             nickname = st.text_input("Ton prénom (pour que les autres lutins te reconnaissent)", placeholder="Ex. : Emmanuelle", max_chars=60)
@@ -186,7 +276,7 @@ if "code" not in st.session_state:
             if not invitation.strip() or not nickname.strip():
                 st.warning("Indique le code d'invitation et ton prénom.")
                 st.stop()
-            if not rate_limit("join"):
+            if not verify_turnstile(join_token) or not rate_limit("join"):
                 st.stop()
             try:
                 st.session_state.joined_code = rpc("join_family", p_invitation=invitation.strip(), p_name=nickname.strip())["code"]
