@@ -256,8 +256,8 @@ with st.expander("🔐 Confidentialité et données personnelles"):
         "si tu estimes que tes droits ne sont pas respectés."
     )
     st.caption(
-        "Les détails techniques des durées de conservation des journaux et "
-        "sauvegardes sont en cours de vérification."
+        "Les sauvegardes et journaux techniques des hébergeurs peuvent être "
+        "conservés selon leurs propres durées, distinctes de celles des Bureaux."
     )
 
 if "code" not in st.session_state:
