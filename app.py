@@ -1,4 +1,6 @@
 """Bureau des Lutins — prototype Streamlit multi-familles."""
+import hashlib
+import hmac
 import streamlit as st
 from supabase import create_client
 
@@ -43,10 +45,33 @@ h1, h2, h3 {color:#245340!important}
 
 @st.cache_resource
 def db():
-    return create_client(st.secrets["SUPABASE_URL"], st.secrets["SUPABASE_ANON_KEY"])
+    # La clé privilégiée reste uniquement dans les Secrets du SERVEUR Streamlit.
+    # Ne jamais afficher cette clé ni la transmettre au navigateur.
+    key = st.secrets.get("SUPABASE_SERVICE_ROLE_KEY") or st.secrets["SUPABASE_ANON_KEY"]
+    return create_client(st.secrets["SUPABASE_URL"], key)
 
 def rpc(name, **params):
     return db().rpc(name, params).execute().data
+
+def rate_limit(action):
+    # Le quota partagé en base évite les simples contournements par rechargement de page.
+    # Avant l'activation V4, il reste inactif : le déploiement est volontairement en deux temps.
+    if not st.secrets.get("SUPABASE_SERVICE_ROLE_KEY"):
+        return True
+    try:
+        ip = getattr(st.context, "ip_address", None) or "adresse-inconnue"
+        pepper = st.secrets["RATE_LIMIT_PEPPER"]
+        visitor_hash = hmac.new(pepper.encode("utf-8"), ip.encode("utf-8"),
+                                hashlib.sha256).hexdigest()
+        allowed = rpc("check_request_limit", p_visitor_hash=visitor_hash,
+                      p_action=action)
+        if allowed is not True:
+            st.warning("Trop de tentatives pour le moment. Réessaie plus tard. 🎄")
+            return False
+        return True
+    except Exception:
+        st.error("Le contrôle de sécurité est indisponible. Réessaie plus tard.")
+        return False
 
 def refresh():
     st.session_state.board = rpc("board", p_code=st.session_state.code)
@@ -66,6 +91,8 @@ def enter(code):
         return
     if not code:
         st.error("Le code ne peut pas être vide.")
+        return
+    if not rate_limit("login"):
         return
     try:
         board = rpc("board", p_code=code)
@@ -123,6 +150,8 @@ if "code" not in st.session_state:
             if not title.strip() or not name.strip():
                 st.warning("Indique le nom du Bureau et ton prénom.")
                 st.stop()
+            if not rate_limit("create"):
+                st.stop()
             try:
                 result = rpc("create_family", p_title=title.strip(), p_name=name.strip())
                 st.session_state.new_codes = result
@@ -146,6 +175,8 @@ if "code" not in st.session_state:
         if do_join:
             if not invitation.strip() or not nickname.strip():
                 st.warning("Indique le code d'invitation et ton prénom.")
+                st.stop()
+            if not rate_limit("join"):
                 st.stop()
             try:
                 st.session_state.joined_code = rpc("join_family", p_invitation=invitation.strip(), p_name=nickname.strip())["code"]
