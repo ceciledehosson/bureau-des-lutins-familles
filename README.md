@@ -26,4 +26,10 @@ Les codes personnels sont sensibles ; ne jamais les mettre dans GitHub ni les co
 - Information sur les données collectées, leur durée de conservation et leur suppression (RGPD).
 - Évaluation des coûts et limites du plan gratuit Supabase et de l'hébergement Streamlit.
 
-Le code est publié pour développement et expérimentation, sans garantie de sécurité ou de disponibilité. Licence open source à déterminer.
+Le code est publié pour développement et expérimentation, sans garantie de sécurité ou de disponibilité.
+
+## Droits d’auteur
+
+© 2026 Cécile de Hosson — Tous droits réservés.
+
+Le dépôt est public pour consultation et tests, mais aucune licence de réutilisation, modification ou redistribution n’est accordée pour le moment. Une éventuelle licence libre pourra être définie ultérieurement par la titulaire des droits.
