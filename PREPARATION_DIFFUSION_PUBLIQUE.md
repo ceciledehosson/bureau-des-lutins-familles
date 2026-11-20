@@ -84,3 +84,19 @@ Les secrets `TURNSTILE_SITE_KEY` et `TURNSTILE_SECRET_KEY` doivent déjà être 
 6. Si un problème bloque les familles, remettre temporairement `TURNSTILE_ENFORCE = false` dans les Secrets, puis investiguer. Ne pas diffuser publiquement tant que la protection n'est pas effective.
 
 **Limites :** le test réel du widget et de l'API Cloudflare n'est pas exécutable à partir de GitHub seul. Le contrôle protège les trois formulaires d'accès, mais pas les autres RPC après connexion ; l'usage d'une clé `service_role` côté serveur reste un privilège élevé et exige vigilance et contrôles complémentaires. Cela n'est pas un audit de sécurité indépendant. Après activation, les tokens sont éphémères et à usage unique ; une expiration nécessite de renouveler la validation.
+
+## 6 — Durée de conservation décidée : 18 mois d'inactivité
+
+Décision validée : supprimer automatiquement les Bureaux qui restent **18 mois sans utilisation avec un code personnel valide**. Les membres, envies, réservations et participations disparaissent avec le Bureau de la base active. Il n'existe **pas d'alerte individuelle par courriel**, puisque le service ne collecte pas les adresses des familles : il faut informer tous les utilisateurs visiblement avant la création et dans la notice.
+
+**Ordre d'installation :**
+
+1. Code de l'application : il informe de cette règle et tente d'appeler `touch_family_activity` lors d'une connexion réussie et lors des actualisations. Tant que la migration V5a manque, il continue à fonctionner sans couper l'accès.
+2. **Installer `migration_conservation_v5a.sql` dans Supabase SQL Editor (multi-familles uniquement)**. Ce fichier ne supprime aucune donnée : les familles déjà présentes reçoivent au minimum **18 mois à compter de l'installation**, et les nouvelles familles commencent leur délai à la création.
+3. Vérifier que le tableau final indique `bureaux_eligibles_suppression = 0`. Se connecter à une famille fictive, puis vérifier que `last_activity_at` est mise à jour par un appel autorisé.
+4. Après validation de la notice publique, **installer séparément `activation_conservation_v5b.sql`** pour programmer la suppression chaque jour via Supabase Cron (extension pg_cron). Vérifier la tâche via le SELECT final. Cette seconde étape n'a pas été exécutée automatiquement par GitHub.
+5. Pour désactiver l'automatisation, exécuter `select cron.unschedule('bureau-lutins-purge-inactifs-18mois');` dans Supabase SQL Editor.
+
+**Limite opérationnelle** : il faut vérifier que les sauvegardes Supabase et les journaux techniques conservent ou non des traces au-delà de la purge de la base active. Les compteurs anti-abus `request_limits` ont leur propre durée de conservation à définir. Une suppression après inactivité ne résout pas ces questions.
+
+Il reste à préciser une adresse de contact publique, la base juridique du traitement et les modalités de réponse aux droits RGPD avant d'annoncer la mise en conformité.
