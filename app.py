@@ -170,8 +170,18 @@ def verify_turnstile(token):
     st.warning("Vérification expirée ou refusée. Actualise la page et réessaie.")
     return False
 
+def record_activity(code):
+    # Active seulement après installation de migration_conservation_v5a.sql.
+    # Le code personnel est vérifié par la base : aucun accès libre à family_id.
+    try:
+        rpc("touch_family_activity", p_code=code)
+    except Exception:
+        pass  # Déploiement progressif : aucune coupure pour les Bureaux existants.
+
 def refresh():
     st.session_state.board = rpc("board", p_code=st.session_state.code)
+    if st.session_state.board:
+        record_activity(st.session_state.code)
 
 def operation(name, **params):
     try:
@@ -198,6 +208,7 @@ def enter(code):
         else:
             st.session_state.code = code
             st.session_state.board = board
+            record_activity(code)
             st.rerun()
     except Exception as err:
         st.error("Impossible de joindre l'atelier pour le moment. Réessaie dans un instant.")
@@ -224,9 +235,16 @@ with st.expander("🔐 Confidentialité et données personnelles"):
         "Le créateur du Bureau peut demander sa suppression définitive "
         "depuis son espace une fois cette fonction activée."
     )
+    st.write(
+        "Conservation prévue : un Bureau resté inactif pendant 18 mois "
+        "sera supprimé avec ses listes et réservations. Le délai est remis "
+        "à zéro lors d'une utilisation avec un code personnel valide. "
+        "La suppression automatique ne prendra effet qu'après activation "
+        "de la procédure programmée."
+    )
     st.caption(
-        "Projet expérimental : la protection contre les usages automatisés "
-        "et la politique complète de conservation sont encore en cours de finalisation."
+        "Le projet reste expérimental. La notice complète de confidentialité "
+        "et les modalités de contact sont en cours de finalisation."
     )
 
 if "code" not in st.session_state:
