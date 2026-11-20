@@ -54,3 +54,19 @@ Le fichier `migration_securite_v1.sql` peut être exécuté dans le **projet Sup
 **Portée limitée** : ce plafond peut lui-même être saturé volontairement, empêchant des familles légitimes de s'inscrire. Il ne filtre ni les adresses IP ni les robots, n'empêche pas les tentatives massives de connexion et ne constitue pas un anti-bot. Ne pas partager largement l'application avant la mise en place d'un véritable contrôle d'abus en amont des fonctions publiques Supabase (par exemple une API intermédiaire avec vérification de challenge et quotas par origine), puis des tests d'intrusion ciblés.
 
 Ordre : exécuter la migration dans Supabase → SQL Editor, vérifier l'absence d'erreurs, vérifier la création d'une nouvelle famille fictive, puis contrôler à nouveau les permissions et les fonctions. Il n'est pas nécessaire de modifier les Secrets ou de régénérer les codes.
+
+
+## Suppression d'un Bureau — migration V3
+
+1. Exécuter `migration_suppression_v3.sql` dans le projet **Supabase multi-familles**, pas dans le projet familial d'origine.
+2. La migration n'efface aucune donnée existante et **conserve le plafond global** de créations de la V1.
+3. Pour les Bureaux existants, elle attribue le rôle de créateur au **premier membre enregistré** (à vérifier si des ajouts manuels ont eu lieu).
+4. Seul ce membre voit « ⚙️ Gestion du Bureau » dans l'application, et peut supprimer le Bureau après avoir tapé `SUPPRIMER <nom exact du Bureau>` et coché la confirmation.
+5. La suppression entraîne l'effacement des membres, listes, réservations et participations par les contraintes de cascade. Elle est irréversible au niveau de la base active ; les éventuelles sauvegardes/historiques du prestataire peuvent avoir des durées propres.
+6. Faire le test exclusivement sur un Bureau fictif jetable, **jamais** sur une famille dont les listes doivent être conservées.
+
+## Confidentialité et publication
+
+Une notice informative est visible dans l'application. Elle ne remplace pas une politique RGPD complète (responsable de traitement, contact, durée de conservation, sous-traitants, droits des personnes, éventuelle gestion des mineurs), à préparer avant une vraie diffusion ouverte.
+
+Les appels RPC publics `board`, `create_family` et `join_family` restent directement utilisables en dehors de Streamlit. Les limites globales sur `create_family` réduisent les créations mais ne fournissent **aucune limitation par personne ni véritable protection des tentatives d'accès**. Le masquage d'un bouton, une vérification JavaScript ou un compteur Streamlit ne sauraient résoudre ce point. Pour une diffusion large, il faudra mettre ces accès derrière une protection vérifiée côté serveur (anti-bot et limitation des requêtes) ; ne pas affirmer que l'application est sécurisée avant ces tests.
