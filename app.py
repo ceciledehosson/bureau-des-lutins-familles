@@ -77,6 +77,8 @@ def enter(code):
 
 st.title("🎄 Le Bureau des Lutins")
 st.caption("Les cadeaux s'organisent. Les surprises restent ! 🤫")
+st.caption("📂 Dépôt GitHub : ceciledehosson/bureau-des-lutins-familles")
+st.caption("© 2026 Cécile de Hosson — Tous droits réservés.")
 
 if "code" not in st.session_state:
     access, new_family, join = st.tabs(["🧝 Entrer", "🎄 Créer un Bureau", "✉️ Rejoindre"])
