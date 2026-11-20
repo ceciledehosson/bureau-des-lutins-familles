@@ -1,6 +1,7 @@
 """Bureau des Lutins — prototype Streamlit multi-familles."""
 import hashlib
 import hmac
+import secrets
 import streamlit as st
 from supabase import create_client
 
@@ -59,9 +60,18 @@ def rate_limit(action):
     if not st.secrets.get("SUPABASE_SERVICE_ROLE_KEY"):
         return True
     try:
-        ip = getattr(st.context, "ip_address", None) or "adresse-inconnue"
+        ip = getattr(st.context, "ip_address", None)
+        if ip:
+            visitor_id = "ip:" + ip
+        else:
+            # Évite que tous les utilisateurs sans IP détectable partagent un quota.
+            # Cette solution de secours est limitée à la session : elle n'est pas anti-bot.
+            if "_quota_session_id" not in st.session_state:
+                st.session_state["_quota_session_id"] = secrets.token_hex(32)
+            visitor_id = "session:" + st.session_state["_quota_session_id"]
         pepper = st.secrets["RATE_LIMIT_PEPPER"]
-        visitor_hash = hmac.new(pepper.encode("utf-8"), ip.encode("utf-8"),
+        visitor_hash = hmac.new(pepper.encode("utf-8"),
+                                visitor_id.encode("utf-8"),
                                 hashlib.sha256).hexdigest()
         allowed = rpc("check_request_limit", p_visitor_hash=visitor_hash,
                       p_action=action)
