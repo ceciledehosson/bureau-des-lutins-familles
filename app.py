@@ -8,9 +8,13 @@ st.markdown("""<style>
 h1,h2,h3 {color:#245340!important}
 [data-testid="stSidebar"] {background:#455750}
 [data-testid="stSidebar"] * {color:white!important}
-.stTabs [data-baseweb="tab-list"] {background:#455750;padding:4px;border-radius:9px}
-.stTabs [data-baseweb="tab"] * {color:white!important}
-.stTabs [data-baseweb="tab"][aria-selected="true"] {background:#687e70}
+/* Onglets contrastés : les libellés restent visibles, même hors sélection. */
+.stTabs [data-baseweb="tab-list"] {background:#455750!important;padding:4px;border-radius:9px;gap:2px}
+.stTabs button[data-baseweb="tab"] {background:#455750!important;color:#fff!important;border-radius:7px}
+.stTabs button[data-baseweb="tab"] * {color:#fff!important;opacity:1!important}
+.stTabs button[data-baseweb="tab"][aria-selected="true"] {background:#a92335!important;color:#fff!important}
+.stTabs button[data-baseweb="tab"][aria-selected="true"] * {color:#fff!important}
+.stTabs [data-baseweb="tab-highlight"] {background:#fff!important}
 .stButton button[kind="primary"] {background:#a92335;border-color:#a92335;color:white}
 .stButton button[kind="secondary"] {background:#52675c;border-color:#52675c;color:white}
 .stButton button[kind="secondary"] * {color:white!important}
