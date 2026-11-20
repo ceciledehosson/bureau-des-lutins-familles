@@ -35,7 +35,7 @@ Documentation : https://developers.cloudflare.com/turnstile/get-started/server-s
 
 **Service** : Le Bureau des Lutins, application gratuite consacrée exclusivement à Noël.
 
-**Responsable du traitement et contact** : Cécile de Hosson — **[adresse de contact dédiée à préciser]**.
+**Responsable du traitement et contact** : Cécile de Hosson — **lebureaudeslutins@gmail.com**.
 
 **Finalités** : créer un Bureau familial, organiser les listes d'envies, les réservations secrètes et les participations aux cadeaux ; prévenir les abus automatisés.
 
@@ -45,9 +45,9 @@ Documentation : https://developers.cloudflare.com/turnstile/get-started/server-s
 
 **Base juridique proposée** : **[à déterminer en fonction du statut réel de l'activité et des traitements ; ne pas affirmer sans analyse]**.
 
-**Durée de conservation** : **[durée précise à définir, puis appliquer techniquement]**. Tant que la suppression automatique n'est pas installée, ne pas annoncer qu'elle existe. Un créateur peut supprimer son Bureau via la fonction de gestion.
+**Durée de conservation** : **18 mois d'inactivité** depuis la dernière activité authentifiée, puis suppression automatisée de la base active (V5a + V5b confirmées par la créatrice). Un créateur peut supprimer son Bureau plus tôt. Les délais des sauvegardes et des journaux techniques doivent être contrôlés.
 
-**Droits des personnes** : accès, rectification, effacement et autres droits selon leur applicabilité, à exercer via **[contact à préciser]**. Le titulaire d'une lettre peut modifier ou supprimer ses propres souhaits. Une réclamation peut être adressée à la CNIL.
+**Droits des personnes** : accès, rectification, effacement et autres droits selon leur applicabilité, à exercer via **lebureaudeslutins@gmail.com**. Le titulaire d'une lettre peut modifier ou supprimer ses propres souhaits. Une réclamation peut être adressée à la CNIL.
 
 **Mineurs** : **[choisir des conditions d'utilisation appropriées et les documenter]**.
 
@@ -56,8 +56,8 @@ Documentation : https://developers.cloudflare.com/turnstile/get-started/server-s
 Source de cadrage : https://www.cnil.fr/fr/conformite-rgpd-information-des-personnes-et-transparence
 
 ## 4 — Décisions restant à prendre
-- Adresse e-mail de contact (elle sera visible du public).
-- Règle de conservation (par exemple suppression des Bureaux de Noël après une période définie **avec information préalable** ; à ne pas activer sans avoir vérifié les conséquences).
+- Adresse e-mail de contact confirmée : **lebureaudeslutins@gmail.com**.
+- Règle de conservation adoptée et activée : **18 mois d'inactivité**, avec information dans l'application. Vérifier périodiquement le fonctionnement du cron.
 - Domaine du déploiement Streamlit confirmé : `bureau-des-lutins-familles.streamlit.app`.
 - Critères d'ouverture (tests réussis, usage et coûts du plan gratuit, processus de support minimal).
 
@@ -100,3 +100,10 @@ Décision validée : supprimer automatiquement les Bureaux qui restent **18 mois
 **Limite opérationnelle** : il faut vérifier que les sauvegardes Supabase et les journaux techniques conservent ou non des traces au-delà de la purge de la base active. Les compteurs anti-abus `request_limits` ont leur propre durée de conservation à définir. Une suppression après inactivité ne résout pas ces questions.
 
 Il reste à préciser une adresse de contact publique, la base juridique du traitement et les modalités de réponse aux droits RGPD avant d'annoncer la mise en conformité.
+
+
+## 7 — Contact public et notice dans l'application
+
+L'adresse dédiée **lebureaudeslutins@gmail.com** est affichée dans l'encart « Confidentialité et données personnelles » accessible avant et après connexion. La notice explique les catégories de données, les finalités, les destinataires, la suppression à 18 mois, les droits et un moyen de contact.
+
+**Avant publicité sur les réseaux**, les points suivants restent à documenter pour une information conforme : base juridique applicable, conditions d'accès pour les mineurs, éventuels transferts internationaux et politique des prestataires pour les sauvegardes et les journaux. Vérifier également par tests négatifs les autorisations entre deux familles et la protection des demandes directes aux RPC.
