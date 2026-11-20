@@ -218,33 +218,46 @@ st.caption("Les cadeaux s'organisent. Les surprises restent ! 🤫")
 st.caption("📂 Dépôt GitHub : ceciledehosson/bureau-des-lutins-familles")
 st.caption("© 2026 Cécile de Hosson — Tous droits réservés.")
 with st.expander("🔐 Confidentialité et données personnelles"):
+    st.markdown("**Responsable du service :** Cécile de Hosson. "
+                "**Contact :** lebureaudeslutins@gmail.com")
     st.write(
-        "Ce service gratuit sert uniquement à organiser les cadeaux de Noël. "
-        "Les participants d'un même Bureau voient leurs prénoms et listes, "
-        "mais pas les réservations de leurs propres cadeaux. "
-        "Les autres familles ne doivent pas pouvoir accéder à ces informations."
+        "Le Bureau des Lutins est un service gratuit, sans publicité, destiné "
+        "à organiser les cadeaux de Noël au sein d'une famille ou d'un groupe."
     )
     st.write(
-        "Sont conservés dans Supabase : nom du Bureau, prénoms, listes, "
-        "prix indicatifs, liens, réservations et participations. "
-        "Les codes personnels et d'invitation ne sont stockés que sous forme de condensats."
+        "Données utilisées : nom du Bureau, prénoms ou pseudonymes, souhaits "
+        "(description, prix indicatifs et liens), réservations, contributions, "
+        "et empreintes des codes d'accès. Les protections anti-abus utilisent "
+        "également des identifiants techniques pseudonymisés. "
+        "Aucune adresse e-mail n'est demandée pour créer un Bureau."
     )
     st.write(
-        "Ne renseigne pas de données sensibles. Conserve ton code personnel : "
-        "il n'existe pas de récupération automatique. "
-        "Le créateur du Bureau peut demander sa suppression définitive "
-        "depuis son espace une fois cette fonction activée."
+        "Les autres membres du Bureau peuvent consulter les listes et organiser "
+        "les cadeaux. Les réservations concernant tes propres souhaits te restent "
+        "cachées. Les données ne sont pas rendues publiques."
     )
     st.write(
-        "Conservation prévue : un Bureau resté inactif pendant 18 mois "
-        "sera supprimé avec ses listes et réservations. Le délai est remis "
-        "à zéro lors d'une utilisation avec un code personnel valide. "
-        "La suppression automatique ne prendra effet qu'après activation "
-        "de la procédure programmée."
+        "Durée : le Bureau et ses données sont automatiquement supprimés de la "
+        "base active après 18 mois d'inactivité. Une connexion réussie ou une "
+        "activité authentifiée réinitialise ce délai. Le créateur ou la créatrice "
+        "peut supprimer le Bureau plus tôt dans « Gestion du Bureau ». "
+        "Les sauvegardes et journaux techniques des prestataires peuvent avoir "
+        "des délais de conservation distincts."
+    )
+    st.write(
+        "Le service utilise Streamlit et Supabase pour l'hébergement et Cloudflare "
+        "Turnstile pour réduire les usages automatisés. Ne renseigne pas "
+        "d'informations sensibles dans les listes."
+    )
+    st.write(
+        "Pour toute question ou demande concernant tes données "
+        "(accès, correction, suppression), écris à "
+        "lebureaudeslutins@gmail.com. Tu peux également saisir la CNIL "
+        "si tu estimes que tes droits ne sont pas respectés."
     )
     st.caption(
-        "Le projet reste expérimental. La notice complète de confidentialité "
-        "et les modalités de contact sont en cours de finalisation."
+        "Les détails techniques des durées de conservation des journaux et "
+        "sauvegardes sont en cours de vérification."
     )
 
 if "code" not in st.session_state:
