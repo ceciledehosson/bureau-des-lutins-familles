@@ -17,7 +17,7 @@ Ces points doivent aussi être vérifiés par appels API de test, pas seulement 
 ## 2 — Anti-bot à ajouter avant diffusion ouverte
 
 Choix proposé : **Cloudflare Turnstile**, vérifié par le serveur avant toute création de Bureau ou inscription. Pour une protection plus complète, prévoir aussi la vérification sur la connexion. Il faut :
-- créer un widget Turnstile pour le **nom de domaine exact de l'application Streamlit** ;
+- créer un widget Turnstile pour le domaine **`bureau-des-lutins-familles.streamlit.app`** (sans `https://` ni `/`) ;
 - obtenir deux valeurs distinctes : la **site key** (publique) et la **secret key** (privée) ;
 - ajouter ces valeurs seulement à la configuration appropriée (secret key dans les Secrets du serveur Streamlit, jamais sur GitHub) ;
 - installer et vérifier le composant d'interface qui retourne le jeton au processus Python ;
@@ -58,7 +58,7 @@ Source de cadrage : https://www.cnil.fr/fr/conformite-rgpd-information-des-perso
 ## 4 — Décisions restant à prendre
 - Adresse e-mail de contact (elle sera visible du public).
 - Règle de conservation (par exemple suppression des Bureaux de Noël après une période définie **avec information préalable** ; à ne pas activer sans avoir vérifié les conséquences).
-- Domaine du déploiement Streamlit pour configurer Turnstile.
+- Domaine du déploiement Streamlit confirmé : `bureau-des-lutins-familles.streamlit.app`.
 - Critères d'ouverture (tests réussis, usage et coûts du plan gratuit, processus de support minimal).
 
 **Les trois sujets ne sont pas entièrement finalisés par ce document.**
