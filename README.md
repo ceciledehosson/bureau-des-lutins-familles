@@ -45,3 +45,12 @@ Corrections réalisées dans `app.py` : messages d'erreur de connexion et d'opé
 **Risques non levés :** les fonctions `create_family`, `join_family` et `board` sont accessibles depuis Internet avec la clé publique ; aucun dispositif fiable de limitation de débit / anti-bot ne protège ces appels. Ne pas annoncer l'application comme sécurisée pour une diffusion générale. Une protection côté serveur (vérification anti-bot et quotas) est nécessaire avant ouverture publique.
 
 Les données de test sont conservées ; aucune migration destructive n'a été appliquée.
+
+
+## Renforcement progressif : migration_securite_v1.sql
+
+Le fichier `migration_securite_v1.sql` peut être exécuté dans le **projet Supabase multi-familles**, avec les familles existantes. Il remplace uniquement la fonction `create_family` et conserve les données. Il fixe un plafond global de **12 nouveaux Bureaux par heure et 60 par jour**, avec verrouillage transactionnel pour empêcher les dépassements simultanés.
+
+**Portée limitée** : ce plafond peut lui-même être saturé volontairement, empêchant des familles légitimes de s'inscrire. Il ne filtre ni les adresses IP ni les robots, n'empêche pas les tentatives massives de connexion et ne constitue pas un anti-bot. Ne pas partager largement l'application avant la mise en place d'un véritable contrôle d'abus en amont des fonctions publiques Supabase (par exemple une API intermédiaire avec vérification de challenge et quotas par origine), puis des tests d'intrusion ciblés.
+
+Ordre : exécuter la migration dans Supabase → SQL Editor, vérifier l'absence d'erreurs, vérifier la création d'une nouvelle famille fictive, puis contrôler à nouveau les permissions et les fonctions. Il n'est pas nécessaire de modifier les Secrets ou de régénérer les codes.
