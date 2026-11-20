@@ -82,6 +82,28 @@ st.title("🎄 Le Bureau des Lutins")
 st.caption("Les cadeaux s'organisent. Les surprises restent ! 🤫")
 st.caption("📂 Dépôt GitHub : ceciledehosson/bureau-des-lutins-familles")
 st.caption("© 2026 Cécile de Hosson — Tous droits réservés.")
+with st.expander("🔐 Confidentialité et données personnelles"):
+    st.write(
+        "Ce service gratuit sert uniquement à organiser les cadeaux de Noël. "
+        "Les participants d'un même Bureau voient leurs prénoms et listes, "
+        "mais pas les réservations de leurs propres cadeaux. "
+        "Les autres familles ne doivent pas pouvoir accéder à ces informations."
+    )
+    st.write(
+        "Sont conservés dans Supabase : nom du Bureau, prénoms, listes, "
+        "prix indicatifs, liens, réservations et participations. "
+        "Les codes personnels et d'invitation ne sont stockés que sous forme de condensats."
+    )
+    st.write(
+        "Ne renseigne pas de données sensibles. Conserve ton code personnel : "
+        "il n'existe pas de récupération automatique. "
+        "Le créateur du Bureau peut demander sa suppression définitive "
+        "depuis son espace une fois cette fonction activée."
+    )
+    st.caption(
+        "Projet expérimental : la protection contre les usages automatisés "
+        "et la politique complète de conservation sont encore en cours de finalisation."
+    )
 
 if "code" not in st.session_state:
     access, new_family, join = st.tabs(["🧝 Entrer", "🎄 Créer un Bureau", "✉️ Rejoindre"])
@@ -159,6 +181,34 @@ with st.sidebar:
         st.session_state.clear()
         st.rerun()
     st.caption("Les réservations sur ta propre liste restent secrètes.")
+    try:
+        management = rpc("my_family_management", p_code=st.session_state.code)
+    except Exception:
+        management = None  # Migration v3 pas encore installée.
+    if management and management.get("is_creator"):
+        with st.expander("⚙️ Gestion du Bureau"):
+            st.warning("Suppression définitive : tous les lutins, listes, réservations "
+                       "et participations de cette famille seront effacés.")
+            family_title = management["title"]
+            st.write("Pour confirmer, recopie exactement :")
+            st.code("SUPPRIMER " + family_title, language=None)
+            with st.form("delete_family_form"):
+                confirmation = st.text_input("Confirmation de suppression")
+                checked = st.checkbox("Je comprends que cette action est irréversible.")
+                delete = st.form_submit_button("🗑️ Supprimer définitivement le Bureau")
+            if delete:
+                if not checked or confirmation != "SUPPRIMER " + family_title:
+                    st.error("Confirmation incorrecte : aucune donnée supprimée.")
+                else:
+                    try:
+                        rpc("delete_family", p_code=st.session_state.code,
+                            p_confirmation=confirmation)
+                    except Exception:
+                        st.error("La suppression n'a pas abouti. Aucune confirmation de suppression.")
+                    else:
+                        st.session_state.clear()
+                        st.success("Le Bureau a été supprimé.")
+                        st.stop()
 
 priorities = ["Ça me ferait plaisir", "J’en rêve", "Si le Père Noël est riche"]
 letter, workshop, sleigh = st.tabs(["💌 Ma lettre", "🎁 L'atelier", "🛷 Ma hotte"])
