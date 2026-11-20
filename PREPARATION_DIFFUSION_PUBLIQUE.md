@@ -62,3 +62,25 @@ Source de cadrage : https://www.cnil.fr/fr/conformite-rgpd-information-des-perso
 - Critères d'ouverture (tests réussis, usage et coûts du plan gratuit, processus de support minimal).
 
 **Les trois sujets ne sont pas entièrement finalisés par ce document.**
+
+## 5 — Turnstile intégré au code (activation séparée)
+
+Le code Streamlit inclut désormais un composant bidirectionnel pour les trois formulaires : connexion, création et invitation. Chaque action vérifie le jeton **sur le serveur** via Cloudflare Siteverify, avec comparaison de l'hôte `bureau-des-lutins-familles.streamlit.app` et échec bloquant si le contrôle est indisponible.
+
+**Par défaut la vérification est désactivée** pour ne pas interrompre les familles pendant le déploiement. Une fois le nouveau code déployé et ses dépendances installées, activer dans **Streamlit → Settings → Secrets** :
+
+```toml
+TURNSTILE_ENFORCE = true
+```
+
+Les secrets `TURNSTILE_SITE_KEY` et `TURNSTILE_SECRET_KEY` doivent déjà être définis et correspondre au widget configuré pour le bon domaine. La clé secrète ne doit jamais figurer dans GitHub.
+
+**Tester après activation, avant toute diffusion :**
+1. Sur l'application, vérifier que la validation apparaît pour les trois onglets (connexion, création et invitation).
+2. Soumettre un formulaire **sans jeton** : l'opération doit être refusée.
+3. Réussir le contrôle puis se connecter à un compte fictif existant.
+4. Créer une famille de test, puis rejoindre une famille fictive.
+5. Vérifier que les secrets ne sont jamais affichés dans le navigateur.
+6. Si un problème bloque les familles, remettre temporairement `TURNSTILE_ENFORCE = false` dans les Secrets, puis investiguer. Ne pas diffuser publiquement tant que la protection n'est pas effective.
+
+**Limites :** le test réel du widget et de l'API Cloudflare n'est pas exécutable à partir de GitHub seul. Le contrôle protège les trois formulaires d'accès, mais pas les autres RPC après connexion ; l'usage d'une clé `service_role` côté serveur reste un privilège élevé et exige vigilance et contrôles complémentaires. Cela n'est pas un audit de sécurité indépendant. Après activation, les tokens sont éphémères et à usage unique ; une expiration nécessite de renouveler la validation.
